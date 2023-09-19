@@ -1,34 +1,38 @@
-//Programa : RFID - Controle de Acesso leitor RFID
-//Autor : MakerHero // Nillson
- 
+#include <Wire.h> // Biblioteca utilizada para fazer a comunicação com o I2C
+#include <LiquidCrystal_I2C.h> // Biblioteca utilizada para fazer a comunicação com o display 20x4 
 #include <SPI.h>
 #include <MFRC522.h>
-#include <LiquidCrystal.h>
- 
+
 #define SS_PIN 10
 #define RST_PIN 9
-MFRC522 mfrc522(SS_PIN, RST_PIN);   // Create MFRC522 instance.
+#define col 16 // Serve para definir o numero de colunas do display utilizado
+#define lin  2 // Serve para definir o numero de linhas do display utilizado
+#define ende  0x3F // Serve para definir o endereço do display.
 
-LiquidCrystal lcd(6, 7, 5, 4, 3, 2); 
- 
+MFRC522 mfrc522(SS_PIN, RST_PIN); 
+LiquidCrystal_I2C lcd(ende,col,lin); // Chamada da funcação LiquidCrystal para ser usada com o I2C
 char st[20];
-const int porta_rele1 = 8;
-void setup() 
-{
+const int RelePin = 6;
+
+void setup() //Incia o display
+{  
   Serial.begin(9600);   // Inicia a serial
   SPI.begin();      // Inicia  SPI bus
   mfrc522.PCD_Init();   // Inicia MFRC522
-  pinMode(porta_rele1, OUTPUT); // Define Rele na saida 8
   Serial.println("Aproxime o seu cartao do leitor...");
   Serial.println();
-  //Define o número de colunas e linhas do LCD:  
-  lcd.begin(16, 2);  
-  mensageminicial();
-  //BUSCAR DADOS DO SDCARD ->> TXT CONTENDO UM BANCO DE DADOS;
+
+  lcd.init(); // Serve para iniciar a comunicação com o display já conectado
+  lcd.backlight(); // Serve para ligar a luz do display
+  lcd.clear(); // Serve para limpar a tela do display
+
+
+  pinMode(RelePin, OUTPUT); // seta o pino como saída
+  digitalWrite(RelePin, LOW);// seta o pino com nivel logico baixo
 }
- 
 void loop() 
 {
+
   // Look for new cards
   if ( ! mfrc522.PICC_IsNewCardPresent()) 
   {
@@ -53,39 +57,36 @@ void loop()
   Serial.println();
   Serial.print("Mensagem : ");
   conteudo.toUpperCase();
-  if (conteudo.substring(1) == "ED 78 03 CA") //UID 1 - Chaveiro // FALTA BUSCAR CHAVE NO TXT INSERIDO NO SDCARD
+  
+  if (conteudo.substring(1) == "C5 8D 82 63") //UID 1 - Chaveiro
   {
-    Serial.println("Ola Usuario"); 
+    Serial.println("Card 01 !");
     Serial.println();
     lcd.clear();
     lcd.setCursor(0,0);
-    lcd.print("Ola Usuario !"); // CAMPO NOME USUARIO NO TXT
+    lcd.print("Card 01 !");
     lcd.setCursor(0,1);
     lcd.print("Acesso liberado!");
-    digitalWrite(porta_rele1, LOW);
-    delay(2000);
-    digitalWrite(porta_rele1, HIGH);
+    digitalWrite(RelePin, HIGH);//rele up
     delay(3000);
+    digitalWrite(RelePin, LOW);//rele down
     mensageminicial();
-
-    //FALTA FAZER O ENVIO DAS INFORMAÇÕES PRO SDCARD (LOG DE ENTRADA)
   }
  
-  if (conteudo.substring(1) == "BD 9B 06 7D") //UID 2 - Cartao // CASO ACESSO NEGADO 
+  if (conteudo.substring(1) == "93 E4 B2 F8") //UID 2 - Cartao
   {
-    Serial.println("Ola Cartao !");
+    Serial.println("Card 01 !DANILO !");
     Serial.println();
     lcd.clear();
     lcd.setCursor(0,0);
-    lcd.print("Ola Cartao !");
+    lcd.print("Card 01 !DANILO !");
     lcd.setCursor(0,1);
-    lcd.print("Acesso Negado !");
     delay(3000);
     mensageminicial();
-  //LOG ACESSO NEGADO
   }
 } 
- 
+
+
 void mensageminicial()
 {
   lcd.clear();
