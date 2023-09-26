@@ -127,6 +127,7 @@ void loop()
       
     }
   if (validador==0 && validador!=1 ){
+    lcd.clear();
     closedoor(Chave);
     mensageminicial();
     }
