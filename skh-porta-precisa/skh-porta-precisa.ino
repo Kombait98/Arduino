@@ -8,17 +8,35 @@
 #define col 16 // Serve para definir o numero de colunas do display utilizado
 #define lin  2 // Serve para definir o numero de linhas do display utilizado
 #define ende  0x3F // Serve para definir o endereço do display.
-
+#define Qmx 10
 MFRC522 mfrc522(SS_PIN, RST_PIN); 
 LiquidCrystal_I2C lcd(ende,col,lin); // Chamada da funcação LiquidCrystal para ser usada com o I2C
 char st[20];
 const int RelePin = 6;
 
-void liberaPorta(char nome[col]){ // Liberação de porta caso cartão reconhecido
-    Serial.println(nome);
+//teste para cadastro de keys
+
+struct dados {
+  String nome ="";
+  String senha = "";
+};
+struct dados pessoa[Qmx] ;
+
+
+void configBd(struct dados pessoa[Qmx]){
+  pessoa[0].nome="Nillson";
+  pessoa[0].senha="C5 8D 82 64" ;
+
+
+  pessoa[1].nome="Testew";
+  pessoa[1].senha="C5 8D 82 63" ;
+}
+
+void liberaPorta(struct dados pessoa[Qmx],int i = 0){ // Liberação de porta caso cartão reconhecido
+    Serial.println(pessoa[i].nome);
     Serial.println();
     lcd.setCursor(1,0);
-    lcd.print(nome);
+    lcd.print(pessoa[i].nome);
     lcd.setCursor(0,1);
     lcd.print("Acesso liberado!");
     digitalWrite(RelePin, HIGH);//rele up
@@ -37,6 +55,8 @@ void mensageminicial()
 
 void setup() //Incia o display
 {  
+  configBd(pessoa);
+  
   //Parte de configuração do arduino e serial.
   Serial.begin(9600);   // Inicia a serial
   SPI.begin();      // Inicia  SPI bus
@@ -57,6 +77,8 @@ void setup() //Incia o display
 }
 void loop() 
 {
+
+  
   // Look for new cards
   if ( ! mfrc522.PICC_IsNewCardPresent()) {
     return;
@@ -79,19 +101,19 @@ void loop()
   Serial.print("Mensagem : ");
   conteudo.toUpperCase();
 
-  if (conteudo.substring(1) == "C5 8D 82 63") //UID 1 - Chaveiro
+  if (conteudo.substring(1) == pessoa[1].senha) //UID 1 - Chaveiro
   {
     lcd.clear();
-    liberaPorta("Works");
+    liberaPorta(pessoa,1);
     mensageminicial();
   }
- 
+ /*
   if (conteudo.substring(1) == "C5 3F 25 77") //UID 2 - Cartao
   {
     lcd.clear();
     liberaPorta("Nillson");
     mensageminicial();
-  }
+  }*/
 
 } 
 
