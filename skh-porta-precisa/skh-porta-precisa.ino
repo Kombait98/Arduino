@@ -21,12 +21,12 @@ struct dados {
   String senha = "";
 };
 struct dados pessoa[Qmx] ;
-
+String Chave ="";
+int validador ;
 
 void configBd(struct dados pessoa[Qmx]){
   pessoa[0].nome="Nillson";
   pessoa[0].senha="C5 8D 82 64" ;
-
 
   pessoa[1].nome="Testew";
   pessoa[1].senha="C5 8D 82 63" ;
@@ -42,6 +42,16 @@ void liberaPorta(struct dados pessoa[Qmx],int i = 0){ // Liberação de porta ca
     digitalWrite(RelePin, HIGH);//rele up
     delay(3000);
     digitalWrite(RelePin, LOW);//rele down
+}
+
+void closedoor(String chave){
+    Serial.println("Chave não reconhecida");
+    Serial.println();
+    lcd.setCursor(1,0);
+    lcd.print(chave);
+    lcd.setCursor(0,1);
+    lcd.print("Acesso Bloqueado!");
+    delay(1000);
 }
 
 void mensageminicial()
@@ -100,13 +110,28 @@ void loop()
   Serial.println();
   Serial.print("Mensagem : ");
   conteudo.toUpperCase();
+  Chave = conteudo.substring(1);
 
-  if (conteudo.substring(1) == pessoa[1].senha) //UID 1 - Chaveiro
-  {
-    lcd.clear();
-    liberaPorta(pessoa,1);
+
+  for (int i =0;i<Qmx;i++){
+      if (conteudo.substring(1) == pessoa[i].senha) //UID 1 - Chaveiro
+      {
+        lcd.clear();
+        liberaPorta(pessoa,i);
+        mensageminicial();
+        validador=1;
+      }
+      else{
+        validador=0;
+      }
+      
+    }
+  if (validador==0 && validador!=1 ){
+    closedoor(Chave);
     mensageminicial();
-  }
+    }
+
+}  
  /*
   if (conteudo.substring(1) == "C5 3F 25 77") //UID 2 - Cartao
   {
@@ -115,6 +140,6 @@ void loop()
     mensageminicial();
   }*/
 
-} 
+ 
 
 
