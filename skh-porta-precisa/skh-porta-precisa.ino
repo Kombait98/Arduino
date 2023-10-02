@@ -1,9 +1,10 @@
 #include <Wire.h> // Biblioteca utilizada para fazer a comunicação com o I2C
 #include <LiquidCrystal_I2C.h> // Biblioteca utilizada para fazer a comunicação com o display 20x4 
-#include <SPI.h>
-#include <MFRC522.h>
+#include <SPI.h> // Biblioteca usada para Comunicar o Leitor de Cards
+#include <MFRC522.h> // Biblioteca usada para o modulo do RFID
 
-#define SS_PIN 10
+
+#define SS_PIN 8 // pin SS do rc522
 #define RST_PIN 9
 #define col 16 // Serve para definir o numero de colunas do display utilizado
 #define lin  2 // Serve para definir o numero de linhas do display utilizado
@@ -79,7 +80,7 @@ void setup() //Incia o display
   Serial.println();
 
   //Criar comunicação com o Display 16x2
-  lcd.init(); // Serve para iniciar a comunicação com o display já conectado
+  lcd.init(); // Serve para iniciar a comunição com o display já conectado
   lcd.backlight(); // Serve para ligar a luz do display
   lcd.clear(); // Serve para limpar a tela do display
 
