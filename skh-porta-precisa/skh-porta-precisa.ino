@@ -44,7 +44,7 @@ void liberaPorta(struct dados pessoa[Qmx],int i = 0){ // Liberação de porta ca
     lcd.setCursor(0,1);
     lcd.print("Acesso liberado!");
     digitalWrite(RelePin, HIGH);//rele aciona a liberação 
-    delay(3000);
+    delay(3500);
     digitalWrite(RelePin, LOW);//rele tranca a porta novamente
     validador=1; // define que o loop achou chave compativel
 }
@@ -56,7 +56,7 @@ void closedoor(String chave){
     lcd.print(chave);
     lcd.setCursor(0,1);
     lcd.print("Acesso Bloqueado!");
-    delay(1000);
+    delay(3000);
 }
 
 void mensageminicial() // mensagem incial
