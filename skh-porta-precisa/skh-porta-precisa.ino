@@ -10,19 +10,15 @@
 #define col 16 // Serve para definir o numero de colunas do display utilizado
 #define lin  2 // Serve para definir o numero de linhas do display utilizado
 #define ende  0x3F // Serve para definir o endereço do display.
-MFRC522 mfrc522(SS_PIN, RST_PIN); 
 LiquidCrystal_I2C lcd(ende,col,lin); // Chamada da funcação LiquidCrystal para ser usada com o I2C
 char st[20];
 const int RelePin = 6;
 const int MAX_UIDS = 40 ;
-int uidCount = 0;
+int ContStr = 0;
 
 //cadastro das keys e nomes
-String Chave ="";
-struct dados {
-  String chave = "";
-};
-struct dados uids[MAX_UIDS] ; // criação da estrutura dados
+String Chave="";
+String dados[MAX_UIDS]; // criação da estrutura dados
 int validador,validadorN ; //criação das validações
 
 
@@ -35,14 +31,13 @@ bool initializeSD() {
 }
 //inserção das chaves e nomes
 
-void loadUIDsFromSD(struct dados uids[MAX_UIDS]) {
+void loadUIDsFromSD() {
     File dataFile = SD.open("data.txt");
     if (dataFile) {
-        while (dataFile.available() && uidCount < MAX_UIDS) {
-            uids[uidCount].chave = dataFile.readStringUntil('-');
-            uidCount++;
+        while (dataFile.available() && ContStr < MAX_UIDS) {
+            dados[ContStr] = dataFile.readStringUntil('-');
+            ContStr++;
         }
-        Serial.println("abriu data.txt");
         dataFile.close();
     } else {
         Serial.println("Erro ao abrir data.txt");
@@ -51,12 +46,12 @@ void loadUIDsFromSD(struct dados uids[MAX_UIDS]) {
 
 
 
-void liberaPorta(struct dados uids[MAX_UIDS],int i = 0){ // Liberação de porta caso cartão reconhecido
+void liberaPorta(String dados [MAX_UIDS],int i = 0){ // Liberação de porta caso cartão reconhecido
 
-    Serial.println(uids[i+1].chave);
+    Serial.println(dados[i+1]);
     Serial.println();
     lcd.setCursor(0,0);
-    lcd.print(uids[i+1].chave);
+    lcd.print(dados[i+1]);
     lcd.setCursor(0,1);
     lcd.print("Acesso liberado!");
     digitalWrite(RelePin, HIGH);//rele aciona a liberação 
@@ -86,19 +81,20 @@ void mensageminicial() // mensagem incial
 
 void setup() //Incia o display
 {  
-  
+  //ContStr = 0;
   //Parte de configuração do arduino e serial.
   Serial.begin(9600);   // Inicia a serial
   if (initializeSD()) {
-        loadUIDsFromSD(uids);
+        loadUIDsFromSD();
         Serial.println("UIDs carregadas:");
-        for (int i = 0; i < uidCount; i++) {
-            Serial.println(uids[i].chave);
+        for (int i = 0; i < ContStr; i++) {
+            Serial.println(dados[i]);
             Serial.print(i);
         }
-    }
+    }  
+
+  MFRC522 mfrc522(SS_PIN, RST_PIN); 
   SPI.begin();      // Inicia  SPI bus
-  
   mfrc522.PCD_Init();   // Inicia MFRC522
 
   
@@ -118,6 +114,7 @@ void setup() //Incia o display
 }
 void loop() 
 {
+  MFRC522 mfrc522(SS_PIN, RST_PIN); 
   validador=0; // define o validador na posição 0 em todo inicio do loop.
   
   // Look for new cards
@@ -145,11 +142,11 @@ void loop()
 
 //inicio do laço de teste da chave.
   for (int i =0;i<MAX_UIDS;i++){    
-      if (conteudo.substring(1) == uids[i].chave) 
+      if (conteudo.substring(1) == dados[i]) 
       {
         //caso teste positivo, vai liberar a porta.
         lcd.clear();
-        liberaPorta(uids,i);
+        liberaPorta(dados,i);
         mensageminicial();
       }
       else{ 

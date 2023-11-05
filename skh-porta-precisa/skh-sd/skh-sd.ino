@@ -5,13 +5,8 @@
 #define SDCARD_CS_PIN 4 
 
 const int MAX_UIDS = 40 ; // Número máximo de pessoas cadastradas.
-struct dados {
-  String chave = "";
-};
-struct dados uids[MAX_UIDS] ; // criação da estrutura dados
+String dados[MAX_UIDS] ; // criação da estrutura dados
 int uidCount = 0; // Quantos UIDs são armazenados na array.
-
-
 
 
 
@@ -27,7 +22,7 @@ void loadUIDsFromSD() {
     File dataFile = SD.open("data.txt");
     if (dataFile) {
         while (dataFile.available() && uidCount < MAX_UIDS) {
-            uids[uidCount].chave = dataFile.readStringUntil('-');
+            dados[uidCount] = dataFile.readStringUntil('-');
             uidCount++;
         }
         dataFile.close();
@@ -42,7 +37,7 @@ void setup() {
         loadUIDsFromSD();
         Serial.println("UIDs carregadas:");
         for (int i = 0; i < uidCount; i++) {
-            Serial.println(uids[i].chave);
+            Serial.println(dados[i]);
             Serial.println(i);
         }
     }
