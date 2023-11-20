@@ -21,6 +21,7 @@ String usuario = "";
 String nome = "";
 char caractere;
 char carac;
+String Ant_conteudo = "";
 
 void setup() {
   Serial.begin(9600); //inicializa a comunicação serial
@@ -59,6 +60,11 @@ void loop() {
     cconteudo.toUpperCase();
     cconteudo.trim();
     mfrc522.PICC_HaltA();
+
+    if(cconteudo!=Ant_conteudo){
+            
+
+    
     myFile = SD.open("data.txt");
     if (myFile) {
       while (myFile.available() && (c2 == 0)) {
@@ -104,9 +110,14 @@ void loop() {
     if (status != "Usuario encontrado") {
       Serial.println(status);
     }
+    Ant_conteudo=cconteudo;
+    }else{
+    Ant_conteudo=cconteudo;
+    }
   }
   myFile.close();
   Serial.print("Bem vindo ");
   Serial.println(nome);
   delay(1000);
+  
 }
