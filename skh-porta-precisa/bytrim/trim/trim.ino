@@ -1,13 +1,14 @@
 #include <SD.h>
 #include <SPI.h>
 #include <MFRC522.h>
+
 #define SS_PIN 8
-#define RST_PIN 9 
+#define RST_PIN 9
 
 File myFile;
 
-MFRC522 mfrc522(SS_PIN,RST_PIN);
-
+MFRC522 mfrc522(SS_PIN, RST_PIN);
+MFRC522::Uid chaveAnterior;
 
 // Variáveis//
 int x = 0;
@@ -23,34 +24,64 @@ char caractere;
 char carac;
 String Ant_conteudo = "";
 
+bool compararUID(MFRC522::Uid uid1, MFRC522::Uid uid2) {
+  if (uid1.size != uid2.size) {
+    return false;
+  }
+
+  for (byte i = 0; i < uid1.size; i++) {
+    if (uid1.uidByte[i] != uid2.uidByte[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void resetVariables() {
+  cconteudo = "";
+  usuario = "";
+  nome = "";
+  status = "";
+  c1 = 0;
+  c2 = 0;
+  c3 = 0;
+}
+
 void setup() {
-  Serial.begin(9600); //inicializa a comunicação serial
-  SPI.begin(); //inicializa a comunicação SPI
-  if (SD.begin(4)) { // Faz a contagem do número de usuários cadastrados
-    myFile = SD.open("data.txt");
-    if (myFile) {
-      while (myFile.available()) {
-        for (x; myFile.read() == 13; x++) {
-          delay(10);
-        }
+  Serial.begin(9600); // inicializa a comunicação serial
+  SPI.begin();        // inicializa a comunicação SPI
+  if (!SD.begin(4)) {  // Faz a contagem do número de usuários cadastrados
+    Serial.println("Falha ao abrir banco de dados");
+    return;
+  }
+
+  myFile = SD.open("data.txt");
+  if (myFile) {
+    while (myFile.available()) {
+      for (x; myFile.read() == 13; x++) {
+        delay(10);
       }
-    }else {
-      Serial.println("Falha ao abrir banco de dados");
     }
     Serial.print(x);
     Serial.println(" usuarios cadastrados: ");
     myFile.close();
     !SD.begin(4);
+  } else {
+    Serial.println("Falha ao abrir banco de dados");
   }
 }
+
 void loop() {
   mfrc522.PCD_Init();
+  cconteudo="";
+  sel=0;
   while (sel == 0) {
     Serial.println("Aproxime o seu cartao do leitor...");
-    cconteudo = "";
-    while ( ! mfrc522.PICC_IsNewCardPresent()) {
+    resetVariables(); // Reset variables for each card read
+    while (!mfrc522.PICC_IsNewCardPresent()) {
     }
-    if ( ! mfrc522.PICC_ReadCardSerial()) {
+    if (!mfrc522.PICC_ReadCardSerial()) {
       return;
     }
     for (byte i = 0; i < mfrc522.uid.size; i++) {
@@ -61,10 +92,8 @@ void loop() {
     cconteudo.trim();
     mfrc522.PICC_HaltA();
 
-    if(cconteudo!=Ant_conteudo){
-            
+    Serial.print(cconteudo);
 
-    
     myFile = SD.open("data.txt");
     if (myFile) {
       while (myFile.available() && (c2 == 0)) {
@@ -76,14 +105,14 @@ void loop() {
           }
         }
         usuario.trim();
-        if ((cconteudo == usuario ) && (c1 == 0) ) {
+        if ((cconteudo == usuario) && (c1 == 0)) {
           status = "Usuario encontrado";
           Serial.println(status);
           c1 = 1;
           c3 = 1;
           cconteudo = " ";
           usuario = " ";
-        }else {
+        } else {
           usuario = "";
           status = "Usuario nao encontrado ";
         }
@@ -104,20 +133,15 @@ void loop() {
           }
         }
       }
-    }else {
+    } else {
       Serial.println("Falha ao abrir banco de dados");
     }
     if (status != "Usuario encontrado") {
       Serial.println(status);
     }
-    Ant_conteudo=cconteudo;
-    }else{
-    Ant_conteudo=cconteudo;
-    }
   }
-  myFile.close();
+
   Serial.print("Bem vindo ");
   Serial.println(nome);
-  delay(1000);
-  
+  myFile.close();
 }
