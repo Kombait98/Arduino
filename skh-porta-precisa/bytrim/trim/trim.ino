@@ -1,9 +1,18 @@
+
 #include <SD.h>
 #include <SPI.h>
 #include <MFRC522.h>
+#include <Wire.h> // Biblioteca utilizada para fazer a comunicação com o I2C
+#include <LiquidCrystal_I2C.h> // Biblioteca utilizada para fazer a comunicação com o display 20x4 
 
 #define SS_PIN 8
 #define RST_PIN 9
+#define SDCARD_CS_PIN 4 
+#define col 16 // Serve para definir o numero de colunas do display utilizado
+#define lin  2 // Serve para definir o numero de linhas do display utilizado
+#define ende  0x3F // Serve para definir o endereço do display.
+LiquidCrystal_I2C lcd(ende,col,lin); // Chamada da funcação LiquidCrystal para ser usada com o I2C
+const int RelePin = 6;
 
 File myFile;
 
@@ -22,21 +31,8 @@ String usuario = "";
 String nome = "";
 char caractere;
 char carac;
-String Ant_conteudo = "";
 
-bool compararUID(MFRC522::Uid uid1, MFRC522::Uid uid2) {
-  if (uid1.size != uid2.size) {
-    return false;
-  }
 
-  for (byte i = 0; i < uid1.size; i++) {
-    if (uid1.uidByte[i] != uid2.uidByte[i]) {
-      return false;
-    }
-  }
-
-  return true;
-}
 
 void resetVariables() {
   cconteudo = "";
@@ -48,6 +44,41 @@ void resetVariables() {
   c3 = 0;
 }
 
+void liberar(String name){
+  lcd.clear();  
+  Serial.print("Acesso permitido! ");
+  Serial.println(name);
+  lcd.setCursor(0,0);
+  lcd.print("Bem vindo");
+  lcd.setCursor(0,1);
+  lcd.print(name);
+  digitalWrite(RelePin, HIGH);//rele aciona a liberação 
+  delay(3000);
+  digitalWrite(RelePin, LOW);//rele tranca a porta novamente
+  myFile.close();
+  mensageminicial();
+}
+void invalida (String key){
+  lcd.clear();
+  lcd.setCursor(0,0);
+  Serial.print(key);
+  lcd.print(key);
+  lcd.setCursor(0,1);
+  Serial.print("Acesso negado! ");
+  lcd.print("Acesso Negado!");
+  delay(1000);
+  myFile.close();
+  mensageminicial();
+}
+
+void mensageminicial() // mensagem incial
+{
+  lcd.clear();
+  lcd.print(" Aproxime o seu");  
+  lcd.setCursor(0,1);
+  lcd.print("Cartao do leitor");  
+}
+
 void setup() {
   Serial.begin(9600); // inicializa a comunicação serial
   SPI.begin();        // inicializa a comunicação SPI
@@ -55,6 +86,9 @@ void setup() {
     Serial.println("Falha ao abrir banco de dados");
     return;
   }
+  MFRC522 mfrc522(SS_PIN, RST_PIN); 
+  SPI.begin();      // Inicia  SPI bus
+  mfrc522.PCD_Init();   // Inicia MFRC522
 
   myFile = SD.open("data.txt");
   if (myFile) {
@@ -70,6 +104,14 @@ void setup() {
   } else {
     Serial.println("Falha ao abrir banco de dados");
   }
+  //Criar comunicação com o Display 16x2
+  lcd.init(); // Serve para iniciar a comunicação com o display já conectado
+  lcd.backlight(); // Serve para ligar a luz do display
+  lcd.clear();
+  //Configurar posição incial do Relê
+  pinMode(RelePin, OUTPUT); // seta o pino como saída
+  digitalWrite(RelePin, LOW);// seta o pino com nivel logico baixo
+  mensageminicial();  
 }
 
 void loop() {
@@ -92,7 +134,7 @@ void loop() {
     cconteudo.trim();
     mfrc522.PICC_HaltA();
 
-    Serial.print(cconteudo);
+   
 
     myFile = SD.open("data.txt");
     if (myFile) {
@@ -107,6 +149,7 @@ void loop() {
         usuario.trim();
         if ((cconteudo == usuario) && (c1 == 0)) {
           status = "Usuario encontrado";
+          Serial.print(cconteudo);
           Serial.println(status);
           c1 = 1;
           c3 = 1;
@@ -138,10 +181,13 @@ void loop() {
     }
     if (status != "Usuario encontrado") {
       Serial.println(status);
+       invalida(cconteudo);  
     }
   }
-
-  Serial.print("Bem vindo ");
-  Serial.println(nome);
-  myFile.close();
+  if (cconteudo == usuario){
+     liberar(nome);
+  } else {
+    
+  }
+mensageminicial();
 }
