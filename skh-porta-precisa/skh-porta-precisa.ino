@@ -17,7 +17,6 @@ const int RelePin = 6;
 File myFile;
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-MFRC522::Uid chaveAnterior;
 
 // Variáveis//
 int x = 0;
