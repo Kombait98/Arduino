@@ -1,9 +1,9 @@
-
 #include <SD.h>
 #include <SPI.h>
 #include <MFRC522.h>
 #include <Wire.h> // Biblioteca utilizada para fazer a comunicação com o I2C
 #include <LiquidCrystal_I2C.h> // Biblioteca utilizada para fazer a comunicação com o display 20x4 
+#include <time.h>
 
 #define SS_PIN 8
 #define RST_PIN 9
@@ -15,6 +15,7 @@ LiquidCrystal_I2C lcd(ende,col,lin); // Chamada da funcação LiquidCrystal para
 const int RelePin = 6;
 
 File myFile;
+File dataFile;
 
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 
@@ -26,10 +27,12 @@ byte c2 = 0;
 byte c3 = 0;
 String status = "";
 String cconteudo = "";
+String chave = "";
 String usuario = "";
 String nome = "";
 char caractere;
 char carac;
+
 
 
 
@@ -41,6 +44,14 @@ void resetVariables() {
   c1 = 0;
   c2 = 0;
   c3 = 0;
+}
+
+void mensageminicial() // mensagem incial
+{
+  lcd.clear();
+  lcd.print(" Aproxime o seu");  
+  lcd.setCursor(0,1);
+  lcd.print("Cartao do leitor");  
 }
 
 void liberar(String name){
@@ -70,13 +81,27 @@ void invalida (String key){
   mensageminicial();
 }
 
-void mensageminicial() // mensagem incial
-{
-  lcd.clear();
-  lcd.print(" Aproxime o seu");  
-  lcd.setCursor(0,1);
-  lcd.print("Cartao do leitor");  
+void registro(String name,String Key){
+  //Abre o arquivo logs.txt
+  File dataFile = SD.open("datalog.txt", FILE_WRITE);
+  //Grava as informacoes no arquivo
+  if (dataFile){  
+    dataFile.print("\t"); 
+    dataFile.print("Nome: ");
+    dataFile.print(name);
+    dataFile.print("\n"); 
+    dataFile.print("\t"); 
+    dataFile.print("TAG: ");
+    dataFile.print(Key);
+    dataFile.print("\n"); 
+    //Fecha o arquivo
+    dataFile.close();
+  } else {
+    Serial.println("Erro ao abrir o arquivo logs.txt");
+  } 
 }
+
+
 
 void setup() {
   Serial.begin(9600); // inicializa a comunicação serial
@@ -114,6 +139,7 @@ void setup() {
 }
 
 void loop() {
+
   mfrc522.PCD_Init();
   cconteudo="";
   sel=0;
@@ -150,6 +176,7 @@ void loop() {
           status = "Usuario encontrado";
           Serial.print(cconteudo);
           Serial.println(status);
+          chave = cconteudo;
           c1 = 1;
           c3 = 1;
           cconteudo = " ";
@@ -180,11 +207,14 @@ void loop() {
     }
     if (status != "Usuario encontrado") {
       Serial.println(status);
-       invalida(cconteudo);  
+       invalida(chave);  
+       registro("Chave Invalida",chave);
     }
   }
   if (cconteudo == usuario){
      liberar(nome);
-  } 
+     registro(nome,chave);
+  }
+  
 mensageminicial();
 }
