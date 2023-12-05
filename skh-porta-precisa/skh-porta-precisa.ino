@@ -63,9 +63,9 @@ void liberar(String name){
   lcd.print("Bem vindo");
   lcd.setCursor(0,1);
   lcd.print(name);
-  digitalWrite(RelePin, HIGH);//rele aciona a liberação 
-  delay(3000);
-  digitalWrite(RelePin, LOW);//rele tranca a porta novamente
+  digitalWrite(RelePin, LOW);//rele aciona a liberação 
+  delay(1000);
+  digitalWrite(RelePin, HIGH);//rele tranca a porta novamente
   myFile.close();
   mensageminicial();
 }
@@ -143,7 +143,7 @@ void setup() {
   lcd.clear();
   //Configurar posição incial do Relê
   pinMode(RelePin, OUTPUT); // seta o pino como saída
-  digitalWrite(RelePin, LOW);// seta o pino com nivel logico baixo
+  digitalWrite(RelePin, HIGH);// seta o pino com nivel logico baixo
   mensageminicial();  
 }
 
