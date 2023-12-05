@@ -13,6 +13,7 @@
 #define ende  0x3F // Serve para definir o endereço do display.
 LiquidCrystal_I2C lcd(ende,col,lin); // Chamada da funcação LiquidCrystal para ser usada com o I2C
 const int RelePin = 6;
+int pushbutton = 2; // declara o push button na porta 2
 
 File myFile;
 File dataFile;
@@ -101,11 +102,19 @@ void registro(String name,String Key){
   } 
 }
 
-
+void button (){
+  if (digitalRead(pushbutton) == LOW) // Se o botão for pressionado
+ {
+    liberar("Entrada Liberada");
+    while (digitalRead(pushbutton) == LOW);
+    delay(3000);
+  }
+}
 
 void setup() {
   Serial.begin(9600); // inicializa a comunicação serial
   SPI.begin();        // inicializa a comunicação SPI
+  pinMode(pushbutton, INPUT_PULLUP);
   if (!SD.begin(4)) {  // Faz a contagem do número de usuários cadastrados
     Serial.println("Falha ao abrir banco de dados");
     return;
@@ -139,7 +148,6 @@ void setup() {
 }
 
 void loop() {
-
   mfrc522.PCD_Init();
   cconteudo="";
   sel=0;
@@ -147,10 +155,12 @@ void loop() {
     Serial.println("Aproxime o seu cartao do leitor...");
     resetVariables(); // Reset variables for each card read
     while (!mfrc522.PICC_IsNewCardPresent()) {
+      button();
     }
     if (!mfrc522.PICC_ReadCardSerial()) {
       return;
     }
+   // button();
     for (byte i = 0; i < mfrc522.uid.size; i++) {
       cconteudo.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
       cconteudo.concat(String(mfrc522.uid.uidByte[i], HEX));
